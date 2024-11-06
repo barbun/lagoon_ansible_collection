@@ -2,6 +2,14 @@ name: Build ansible docs
 on:
   workflow_dispatch:
     inputs:
+      init-title:
+        description: |
+          Sets the `title` and `html_short_title` values in the Sphinx configuration.
+          If `init-html-short-title` is also specified, only `title` will be set to the value
+          specified here.
+        required: false
+        type: string
+        default: "Ansible docs"
       ansible-ref:
         description: The ref from which to install ansible, for example "stable-2.14" or "milestone".
         required: false
@@ -81,22 +89,8 @@ jobs:
           collections: ${{ steps.vars.outputs.col-name }}
           dest-dir: ${{ steps.vars.outputs.init-dir }}
           skip-init: ${{ steps.vars.outputs.skip-init }}
-          antsibull-docs-version: '${{ inputs.init-antsibull-docs-version }}'
-          antsibull-docs-repository: '${{ inputs.init-antsibull-docs-repository }}'
-          lenient: ${{ inputs.init-lenient }}
-          fail-on-error: ${{ inputs.init-fail-on-error }}
-          provide-link-targets: ${{ inputs.provide-link-targets }}
-          intersphinx-links: ${{ inputs.intersphinx-links }}
-          squash-hierarchy: ${{ inputs.squash-hierarchy }}
-          index-rst-source: ${{ inputs.init-index-rst-source }}
-          project: ${{ inputs.init-project }}
-          copyright: ${{ inputs.init-copyright }}
           title: ${{ inputs.init-title }}
           html-short-title: ${{ inputs.init-html-short-title }}
-          extra-conf: ${{ inputs.init-extra-conf }}
-          extra-html-context: ${{ inputs.init-extra-html-context }}
-          extra-html-theme-options: ${{ inputs.init-extra-html-theme-options }}
-          append-conf-py: ${{ inputs.init-append-conf-py }}
 
       - name: Build
         id: build
