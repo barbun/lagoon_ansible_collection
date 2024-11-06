@@ -79,8 +79,8 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip \
-          pip install -e .[coverage] ../antsibull-core ../antsibull-changelog ../antsibull-docs-parser ../antsibull-docutils ../antsibull-fileutils
-        working-directory: ./ansible_collections
+          pip install -e .[coverage] ../../../antsibull-core ../../../antsibull-changelog ../../../antsibull-docs-parser ../../../antsibull-docutils ../../../antsibull-fileutils
+        working-directory: ./ansible_collections/lagoon/api
 
       - name: Install dependencies
         run: |
