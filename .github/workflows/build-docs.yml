@@ -12,7 +12,7 @@ on:
         required: true
 
 jobs:
-  build-docs:
+  build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
