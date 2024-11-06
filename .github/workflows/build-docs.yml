@@ -2,10 +2,6 @@ name: Build ansible docs
 on:
   workflow_dispatch:
     inputs:
-      artifact-name:
-        required: false
-          type: string
-          default: ${{ github.event.repository.name }}_docs_${{ github.sha }}
       config:
         description: 'Log level'
         required: true
@@ -13,7 +9,7 @@ on:
     outputs:
       artifact-name:
         description: The same artifact name as passed in, available as an output.
-        value: ${{ inputs.artifact-name }}
+        value: 'YO'
       artifact-url:
         description: The URL to the build artifacts.
         value: ${{ jobs.build-ansible-docs.outputs.artifact-url }}
