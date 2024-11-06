@@ -1,12 +1,7 @@
 ---
-name: Ansible collection docs build (Push)
+name: Build ansible docs
 on:
   workflow_dispatch:
-    inputs:
-      config:
-        description: 'Log level'
-        required: true
-  workflow_call:
     inputs:
       collection-name:
         description: The collection name in the form namespace.collection.
