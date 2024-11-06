@@ -1,127 +1,247 @@
-name: Build ansible docs
-
+---
+name: Ansible collection docs build (Push)
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      config:
-        description: 'Log level'
-        required: true
+      collection-name:
+        description: The collection name in the form namespace.collection.
+        required: false
+        type: string
+        default: ${{ github.event.repository.name }}
+      collection-path:
+        description: This is the relative path component of the collection in question, for example community/general.
+        required: false
+        type: string
+      python:
+        description: The version of Python to install.
+        required: false
+        type: string
+        default: '3.13'
+      ansible-ref:
+        description: The ref from which to install ansible, for example "stable-2.14" or "milestone".
+        required: false
+        type: string
+        default: stable-2.18
+      build-ref:
+        description: |
+          The ref from this repository to check out and build.
+          The default is the default of the actions/checkout action.
+        required: false
+        type: string
+      init-dest-dir:
+        description: A directory relative to the checkout where the init process has already been run.
+        required: false
+        type: string
+      init-lenient:
+        description: Use the lenient option during build init. Has no effect if init-dest-dir is supplied.
+        required: false
+        type: boolean
+        default: false
+      init-fail-on-error:
+        description: Use the fail-on-error option during build init. Has no effect if init-dest-dir is supplied.
+        required: false
+        type: boolean
+        default: false
+      init-antsibull-docs-version:
+        description: |
+          The version of antsibull-docs to use during build init. Has no effect if init-dest-dir is supplied.
+          If not supplied, the latest version from PyPI is used. If supplied, must be a git ref from the antsibull-docs repository.
+        required: false
+        type: string
+      init-antsibull-docs-repository:
+        description: |
+          When init-antsibull-docs-version is specified, this is the GitHub repository to which init-antsibull-docs-version refers.
+          Has no effect if init-dest-dir is supplied, or if init-antsibull-docs-version is not supplied.
+        required: false
+        type: string
+        default: ansible-community/antsibull-docs
+      init-index-rst-source:
+        description: |
+          Copy the provided file to `rst/index.rst` intead of templating a default one.
+        required: false
+        type: string
+      init-project:
+        description: |
+          Sets the `project` value in the Sphinx configuration.
+        required: false
+        type: string
+      init-copyright:
+        description: |
+          Sets the `copyright` value in the Sphinx configuration.
+        required: false
+        type: string
+      init-title:
+        description: |
+          Sets the `title` and `html_short_title` values in the Sphinx configuration.
+          If `init-html-short-title` is also specified, only `title` will be set to the value
+          specified here.
+        required: false
+        type: string
+      init-html-short-title:
+        description: |
+          Sets the `html_short_title` value in the Sphinx configuration. If not specified,
+          the value of `init-title` will be used.
+        required: false
+        type: string
+      init-extra-conf:
+        description: |
+          A newline separated list of `key=value` entries that will be added to the generated
+          `conf.py`.
+        required: false
+        type: string
+      init-extra-html-context:
+        description: |
+          A newline separated list of `key=value` entries that will be added to the generated
+          `conf.py` in `html_context`
+        required: false
+        type: string
+      init-extra-html-theme-options:
+        description: |
+          A newline separated list of `key=value` entries that will be added to the generated
+          `conf.py` in `html_theme_options`
+        required: false
+        type: string
+      init-append-conf-py:
+        description: |
+          If provided, this text will be appended to the generated `conf.py` as-is.
+        required: false
+        type: string
+      artifact-upload:
+        description: Whether or not to upload the build as an artifact.
+        type: boolean
+        required: false
+        default: true
+      artifact-name:
+        description: The name of the artifact to upload.
+        required: false
+        type: string
+        default: ${{ github.event.repository.name }}_docs_${{ github.sha }}
+      extra-collections:
+        description: A space separated list of additional collections to install prior to building the documentation.
+        required: false
+        type: string
+      provide-link-targets:
+        description: A newline separated list of link targets that should not cause reference errors. A small RST file will be created during the build which contains these labels.
+        required: false
+        type: string
+      intersphinx-links:
+        description: |
+          A newline separated list of entries to add to the intersphinx_mapping in the generated conf.py.
+          Use the syntax `identifier:https://server/path` to add the identifier `identifier` with URL
+          `https://server/path`.
+        required: false
+        type: string
+      squash-hierarchy:
+        description: |
+          If 'true', the collection documentation will be created at top-level and not in a subdirectory `namespace/collection_name/`.
+          Has no effect if init-dest-dir is supplied.
+        required: false
+        type: boolean
+        default: false
+
+    outputs:
+      artifact-name:
+        description: The same artifact name as passed in, available as an output.
+        value: ${{ inputs.artifact-name }}
+      artifact-url:
+        description: The URL to the build artifacts.
+        value: ${{ jobs.build-ansible-docs.outputs.artifact-url }}
 
 jobs:
-  build-docs:
+  build-ansible-docs:
+    name: Build Ansible Docs
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python:
-          - '3.13'
-        antsibull_core_ref:
-          - main
-        antsibull_docs_parser_ref:
-          - main
-        antsibull_changelog_ref:
-          - main
-        antsibull_docutils_ref:
-          - main
-        antsibull_fileutils_ref:
-          - main
-
+    permissions:
+      contents: read
+    outputs:
+      artifact-url: ${{ steps.build-head.outputs.artifact-url }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Variable setup
+        id: vars
+        uses: actions/github-script@v7
         with:
-          path: 'ansible_collections/lagoon'
+          script: |
+            const inputs = ${{ toJSON(inputs) }}
+            var colpath = inputs['collection-path']
+            var colname = inputs['collection-name']
 
-      - name: Check out dependent project antsibull-core
-        uses: actions/checkout@v4
-        with:
-          repository: ansible-community/antsibull-core
-          path: antsibull-core
-          ref: ${{ matrix.antsibull_core_ref }}
+            if (colname == '') {
+                colname = process.env.GITHUB_REPOSITORY.split('/')[1]
+            }
 
-      - name: Check out dependent project antsibull-docs-parser
-        uses: actions/checkout@v4
-        with:
-          repository: ansible-community/antsibull-docs-parser
-          path: antsibull-docs-parser
-          ref: ${{ matrix.antsibull_docs_parser_ref }}
+            if (colpath == '') {
+                colpath = colname.replace('.', '/')
+            }
 
-      - name: Check out dependent project antsibull-changelog
-        uses: actions/checkout@v4
-        with:
-          repository: ansible-community/antsibull-changelog
-          path: antsibull-changelog
-          ref: ${{ matrix.antsibull_changelog_ref }}
+            core.exportVariable('ANSIBLE_COLLECTIONS_PATHS', process.env.GITHUB_WORKSPACE)
 
-      - name: Check out dependent project antsibull-docutils
-        uses: actions/checkout@v4
-        with:
-          repository: ansible-community/antsibull-docutils
-          path: antsibull-docutils
-          ref: ${{ matrix.antsibull_docutils_ref }}
+            const checkoutPath = `ansible_collections/${colpath}`
 
-      - name: Check out dependent project antsibull-fileutils
-        uses: actions/checkout@v4
-        with:
-          repository: ansible-community/antsibull-fileutils
-          path: antsibull-fileutils
-          ref: ${{ matrix.antsibull_fileutils_ref }}
+            core.setOutput('col-name', colname)
+            core.setOutput('col-path', colpath)
+            core.setOutput('checkout-path', checkoutPath)
+
+            var initPath = '${{ runner.temp }}/docsbuild'
+            var skipInit = false
+
+            if (inputs['init-dest-dir'] != '') {
+                initPath = `${checkoutPath}/${inputs['init-dest-dir']}`
+                skipInit = true
+            }
+
+            core.setOutput('init-dir', initPath)
+            core.setOutput('skip-init', skipInit)
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-          cache: 'pip'
+          python-version: ${{ inputs.python }}
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[coverage] ./antsibull-core
-        working-directory: ./ansible_collections/
+      - name: Install Ansible
+        run: pip install https://github.com/ansible/ansible/archive/${{ inputs.ansible-ref }}.tar.gz --disable-pip-version-check
 
-      - name: Install dependencies
+      - name: Install extra collections
+        shell: bash
         run: |
-          pip install ansible-core -r requirements.txt
-        working-directory: ./ansible_collections/lagoon/api
-#
-#      - name: Use antsibull-docs sphinx-init
-#        run: |
-#          antsibull-docs sphinx-init --use-current \
-#          --squash-hierarchy lagoon.api --dest-dir /built-docs;
-#        working-directory: ./ansible_collections/lagoon/api
-#
-#      - name: Lint the collection.
-#        run: |
-#          # Use more lenient linting version - use the stricter one when ready.
-#          antsibull-docs lint-collection-docs .; \
-#          # antsibull-docs lint-collection-docs --plugin-docs .;
-#        working-directory: ./ansible_collections/lagoon/api
-#
-#      - name: Build docsite
-#        run: |
-#            ./build.sh
-#        working-directory: ./ansible_collections/lagoon/api
-#
-#      - name: Validate HTML
-#        run: |
-#          pip install html5lib
-#          python tests/validate-html.py /built-docs
-#        working-directory: ./ansible_collections/lagoon/api
-#
-#    - name: Upload artifact
-#      if: fromJSON(inputs.artifact-upload)
-#      uses: actions/upload-artifact@v4
-#      with:
-#        path: /built-docs
-#        name: 'build_docs'
-#        retention-days: '1'
-#
-#    - name: Output step
-#      id: outs
-#      shell: bash
-#      run: |
-#        echo "hash=${{ hashFiles(steps.build.outputs.build-html) }}" >> ${GITHUB_OUTPUT}
-#        echo "artifact-url=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> ${GITHUB_OUTPUT}
+          if [[ "${{ inputs.extra-collections }}" != "" ]] ; then
+            ansible-galaxy collection install ${{ inputs.extra-collections }}
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: ${{ steps.vars.outputs.checkout-path }}
+          ref: ${{ inputs.build-ref }}
+
+      - name: Initialize the build environment
+        id: init
+        uses: ansible-community/github-docs-build/actions/ansible-docs-build-init@main
+        with:
+          collections: ${{ steps.vars.outputs.col-name }}
+          dest-dir: ${{ steps.vars.outputs.init-dir }}
+          skip-init: ${{ steps.vars.outputs.skip-init }}
+          antsibull-docs-version: '${{ inputs.init-antsibull-docs-version }}'
+          antsibull-docs-repository: '${{ inputs.init-antsibull-docs-repository }}'
+          lenient: ${{ inputs.init-lenient }}
+          fail-on-error: ${{ inputs.init-fail-on-error }}
+          provide-link-targets: ${{ inputs.provide-link-targets }}
+          intersphinx-links: ${{ inputs.intersphinx-links }}
+          squash-hierarchy: ${{ inputs.squash-hierarchy }}
+          index-rst-source: ${{ inputs.init-index-rst-source }}
+          project: ${{ inputs.init-project }}
+          copyright: ${{ inputs.init-copyright }}
+          title: ${{ inputs.init-title }}
+          html-short-title: ${{ inputs.init-html-short-title }}
+          extra-conf: ${{ inputs.init-extra-conf }}
+          extra-html-context: ${{ inputs.init-extra-html-context }}
+          extra-html-theme-options: ${{ inputs.init-extra-html-theme-options }}
+          append-conf-py: ${{ inputs.init-append-conf-py }}
+
+      - name: Build
+        id: build
+        uses: ansible-community/github-docs-build/actions/ansible-docs-build-html@main
+        with:
+          build-script: ${{ steps.init.outputs.build-script }}
+          build-html: ${{ steps.init.outputs.build-html }}
+          artifact-name: ${{ inputs.artifact-name }}
+          artifact-upload: ${{ inputs.artifact-upload }}
