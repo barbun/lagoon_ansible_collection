@@ -2,9 +2,11 @@ name: Build ansible docs
 on:
   workflow_dispatch:
     inputs:
-      config:
-        description: 'Log level'
-        required: true
+      ansible-ref:
+        description: The ref from which to install ansible, for example "stable-2.14" or "milestone".
+        required: false
+        type: string
+        default: stable-2.18
 
 jobs:
   build-ansible-docs:
