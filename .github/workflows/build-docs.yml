@@ -51,7 +51,7 @@ jobs:
             core.setOutput('checkout-path', checkoutPath)
 
             var initPath = '${{ runner.temp }}/docsbuild'
-            var skipInit = false
+            var skipInit = true
 
             if (inputs['init-dest-dir'] != '') {
                 initPath = `${checkoutPath}/${inputs['init-dest-dir']}`
@@ -100,3 +100,4 @@ jobs:
           build-html: ${{ steps.init.outputs.build-html }}
           artifact-name: ${{ inputs.artifact-name }}
           artifact-upload: ${{ inputs.artifact-upload }}
+          skip-init
