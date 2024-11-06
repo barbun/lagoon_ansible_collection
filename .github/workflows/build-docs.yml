@@ -1,4 +1,3 @@
----
 name: Build ansible docs
 on:
   workflow_dispatch:
