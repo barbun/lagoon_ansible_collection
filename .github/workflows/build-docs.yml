@@ -5,9 +5,11 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-
-env:
-  REGISTRY: ghcr.io
+  workflow_dispatch:
+    inputs:
+      config:
+        description: 'Log level'
+        required: true
 
 jobs:
   build-docs:
