@@ -100,4 +100,3 @@ jobs:
           build-html: ${{ steps.init.outputs.build-html }}
           artifact-name: ${{ inputs.artifact-name }}
           artifact-upload: ${{ inputs.artifact-upload }}
-          skip-init
