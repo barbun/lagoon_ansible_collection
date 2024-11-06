@@ -1,15 +1,13 @@
-name: Build ansible-test
+name: Run build-docs
 
 on:
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-  workflow_dispatch:
-    inputs:
-      config:
-        description: 'Log level'
-        required: true
+
+env:
+  REGISTRY: ghcr.io
 
 jobs:
   build:
