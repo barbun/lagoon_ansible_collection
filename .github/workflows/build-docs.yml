@@ -20,7 +20,6 @@ jobs:
           - '3.13'
         antsibull_core_ref:
           - main
-          - '3.2.0'
         antsibull_docs_parser_ref:
           - main
         antsibull_changelog_ref:
@@ -36,40 +35,40 @@ jobs:
         with:
           path: 'ansible_collections/lagoon'
 
-#      - name: Check out dependent project antsibull-core
-#        uses: actions/checkout@v4
-#        with:
-#          repository: ansible-community/antsibull-core
-#          path: antsibull-core
-#          ref: ${{ matrix.antsibull_core_ref }}
-#
-#      - name: Check out dependent project antsibull-docs-parser
-#        uses: actions/checkout@v4
-#        with:
-#          repository: ansible-community/antsibull-docs-parser
-#          path: antsibull-docs-parser
-#          ref: ${{ matrix.antsibull_docs_parser_ref }}
-#
-#      - name: Check out dependent project antsibull-changelog
-#        uses: actions/checkout@v4
-#        with:
-#          repository: ansible-community/antsibull-changelog
-#          path: antsibull-changelog
-#          ref: ${{ matrix.antsibull_changelog_ref }}
-#
-#      - name: Check out dependent project antsibull-docutils
-#        uses: actions/checkout@v4
-#        with:
-#          repository: ansible-community/antsibull-docutils
-#          path: antsibull-docutils
-#          ref: ${{ matrix.antsibull_docutils_ref }}
-#
-#      - name: Check out dependent project antsibull-fileutils
-#        uses: actions/checkout@v4
-#        with:
-#          repository: ansible-community/antsibull-fileutils
-#          path: antsibull-fileutils
-#          ref: ${{ matrix.antsibull_fileutils_ref }}
+      - name: Check out dependent project antsibull-core
+        uses: actions/checkout@v4
+        with:
+          repository: ansible-community/antsibull-core
+          path: antsibull-core
+          ref: ${{ matrix.antsibull_core_ref }}
+
+      - name: Check out dependent project antsibull-docs-parser
+        uses: actions/checkout@v4
+        with:
+          repository: ansible-community/antsibull-docs-parser
+          path: antsibull-docs-parser
+          ref: ${{ matrix.antsibull_docs_parser_ref }}
+
+      - name: Check out dependent project antsibull-changelog
+        uses: actions/checkout@v4
+        with:
+          repository: ansible-community/antsibull-changelog
+          path: antsibull-changelog
+          ref: ${{ matrix.antsibull_changelog_ref }}
+
+      - name: Check out dependent project antsibull-docutils
+        uses: actions/checkout@v4
+        with:
+          repository: ansible-community/antsibull-docutils
+          path: antsibull-docutils
+          ref: ${{ matrix.antsibull_docutils_ref }}
+
+      - name: Check out dependent project antsibull-fileutils
+        uses: actions/checkout@v4
+        with:
+          repository: ansible-community/antsibull-fileutils
+          path: antsibull-fileutils
+          ref: ${{ matrix.antsibull_fileutils_ref }}
 #
 #      - name: Set up Python
 #        uses: actions/setup-python@v5
