@@ -10,6 +10,16 @@ on:
         required: false
         type: string
         default: "Ansible docs"
+      collection-name:
+        description: The collection name in the form namespace.collection.
+        required: false
+        type: string
+        default: ${{ github.event.repository.name }}
+      collection-path:
+        description: This is the relative path component of the collection in question, for example community/general.
+        required: false
+        type: string
+        default: 'ansible_collections/lagoon'
       ansible-ref:
         description: The ref from which to install ansible, for example "stable-2.14" or "milestone".
         required: false
@@ -51,7 +61,7 @@ jobs:
             core.setOutput('checkout-path', checkoutPath)
 
             var initPath = '${{ runner.temp }}/docsbuild'
-            var skipInit = true
+            var skipInit = false
 
             if (inputs['init-dest-dir'] != '') {
                 initPath = `${checkoutPath}/${inputs['init-dest-dir']}`
