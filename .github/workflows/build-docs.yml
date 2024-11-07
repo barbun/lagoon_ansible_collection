@@ -14,7 +14,7 @@ on:
         description: The collection name in the form namespace.collection.
         required: false
         type: string
-        default: ${{ github.event.repository.name }}
+        default: 'lagoon.api'
       collection-path:
         description: This is the relative path component of the collection in question, for example community/general.
         required: false
